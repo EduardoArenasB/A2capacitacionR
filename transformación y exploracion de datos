@@ -1,0 +1,109 @@
+
+#Transformación y Exploración de datos
+
+enigh = read_csv('hogares_enigh.csv')
+
+#Filtros
+filter(enigh, clase_hog == 2)
+
+hogares_nucleares = filter(enigh, clase_hog == 2)
+
+hogares_nucleares_jfem = filter(enigh, clase_hog==2, sexo_jefe == 2)
+
+hogares_jfem = filter(enigh, (clase_hog == 1|clase_hog == 2 ), sexo_jefe ==2)
+
+
+hogares_unipersonales_fmasc = filter(enigh, clase_hog == 1 , sexo_jefe == 1)
+
+
+arrange(enigh, edad_jefe)
+
+
+arrange(enigh, sexo_jefe, edad_jefe)
+
+colnames(enigh)
+
+
+enigh_corto = select(enigh, folioviv, foliohog , ing_cor, gasto_mon, tot_integ )
+
+enigh_corto2 = select(enigh, folioviv:sexo_jefe)
+
+enigh_corto3 = select(enigh, folioviv:sexo_jefe, gasto_mon )
+
+
+enigh_corto4 = select(enigh, -(folioviv:percep_ing))
+
+
+select(enigh , starts_with('fol'))
+select(enigh , ends_with('s'))
+
+enigh_corto = select(enigh, folioviv, foliohog,
+                     ing_cor, gasto_mon, tot_integ,
+                     ubica_geo, sexo_jefe, clase_hog, edad_jefe)
+
+
+enigh_corto = mutate(enigh_corto, ingreso_capita=ing_cor / tot_integ)
+
+enigh_corto = mutate(enigh_corto, cve_ent = substr(ubica_geo,1,2))
+
+
+enigh_corto = mutate(enigh_corto, l_ingreso = log(ing_cor),
+                     lgasto = log(gasto_mon), gasto_porcentual = (gasto_mon / ing_cor)*100)
+
+summarise(enigh_corto ,  mean(ing_cor), mean(gasto_mon))
+
+summarise(enigh_corto ,  median(ing_cor), median(gasto_mon))
+
+summarise(enigh_corto ,  var(ing_cor), var(gasto_mon))
+
+
+#group_by
+
+summarise(group_by(enigh_corto, sexo_jefe ), mean(ing_cor), mean(gasto_mon))
+
+sexo = group_by(enigh_corto, sexo_jefe)
+class(sexo)
+
+summarise(sexo, mean(ing_cor), mean(gasto_mon))
+
+clases_hogar = group_by(enigh_corto, sexo_jefe, clase_hog)
+
+summarise(clases_hogar, mean(ing_cor), mean(gasto_mon))
+
+enight_corto_filtrado = filter(enigh_corto, ing_cor > 0, gasto_mon > 0)
+
+enight_corto_filtrado_agrupado = group_by(enight_corto_filtrado, edad_jefe)
+
+summarise(enight_corto_filtrado_agrupado, mean(ingreso_capita))
+
+x = summarise(enight_corto_filtrado_agrupado, mean(ingreso_capita))
+
+ingreso_edad = x
+
+ingreso_edad  = summarise(enight_corto_filtrado_agrupado, ingreso = mean(ingreso_capita), hogares = n())
+
+
+ggplot(data = ingreso_edad, mapping = aes(x = edad_jefe, y =ingreso))+
+  geom_point(aes(size=hogares), alpha = 1/3) + 
+  geom_smooth(se = FALSE)
+
+
+#Operador Pipe
+
+ingreso_edad2 = filter(enigh_corto, ing_cor > 0, gasto_mon > 0) %>%
+  group_by(edad_jefe) %>%
+  summarise(ingreso = mean(ingreso_capita), hogares = n())
+
+ggplot(data = ingreso_edad2, mapping = aes(x = edad_jefe, y =ingreso))+
+  geom_point(aes(size=hogares), alpha = 1/3) + 
+  geom_smooth(se = FALSE)
+
+
+tabla_entidad = filter(enigh_corto, ing_cor > 0, gasto_mon > 0) %>%
+  group_by(cve_ent, clase_hog) %>%
+  summarise(ingreso = mean(ingreso_capita), hogares = n())
+
+ggplot(data = tabla_entidad)+
+  geom_line(mapping = aes(x = cve_ent,y = ingreso))
+
+
