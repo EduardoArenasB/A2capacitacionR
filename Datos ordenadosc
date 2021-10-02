@@ -1,0 +1,65 @@
+options(scipen = 999)
+
+tabla1 = read_excel('tablas_ejemplo.xls', sheet = 'tabla1')
+tabla2 = read_excel('tablas_ejemplo.xls', sheet = 'tabla2')
+tabla3 = read_excel('tablas_ejemplo.xls', sheet = 'tabla3')
+
+datos = read_csv('datos_banco_mundial.csv')
+
+datos = datos%>%
+  gather(`1960` : `2020`, key = 'años', value = 'valores')
+
+
+datos = datos%>%
+  select(-(`serie Code`))%>%
+  spread(key = 'serie Name', value = 'valores')
+
+datos <- datos %>%
+  mutate(`Cajeros automaticos (por cada 100.000 adultos)` = ifelse
+         (`Cajeros automaticos (por cada 100.000 adultos)`==".." , NA,
+           `Cajeros automaticos (por cada 100.000 adultos)`) ) %>%
+  mutate(`PIB (US$ a precios constantes de 2010)` = ifelse
+         (`PIB (US$ a precios constantes de 2010)`==".." , NA,
+           `PIB (US$ a precios constantes de 2010)`) ) %>%
+  mutate(`Poblacion, total` = ifelse
+         (`Poblacion, total`==".." , NA,
+           `Poblacion, total`)
+
+datos = datos %>%
+  mutate(periodo=as.numeric(años)) %>%
+  mutate(`Cajeros automaticos (por cada 100.000 adultos)`=as.numeric
+         (`Cajeros automaticos (por cada 100.000 adultos)`)) %>%
+  mutate(`PIB (US$ a precios constantes de 2010)`=as.numeric
+         (`PIB (US$ a precios constantes de 2010)`)) %>%
+  mutate(`Poblacion, total`=as.numeric
+         (`Poblacion, total`))
+
+
+summary(datos)
+
+datos = datos%>%
+  mutate(años = as.numeric(años))
+
+summary(datos)
+
+datos = datos%>%
+  mutate(`Cajeros automaticos (por cada 100.000 adultos)` = as.numeric(`Cajeros automaticos (por cada 100.000 adultos)`))
+
+datos = datos%>%
+  mutate(años = as.numeric(años))
+
+
+ggplot(datos, aes(años, `PIB (US$ a precios constantes de 2010)`))+
+  geom_line(aes(group=Pais), color = 'grey50', na.rm= TRUE)+
+  geom_point(aes(color=Pais), na.rm=TRUE)
+
+
+sni =  read_csv('Investigadores-SNI-vigentes-2018.csv')
+
+
+sni = sni%>%
+  unite(Nombre, `Apellido Paterno`, `Apellido Materno`, Nombre, sep = ' ')
+
+
+sni = sni%>%
+  separate(`Area del Conocimiento`,into = c('cve_area','area'), sep = ':')
