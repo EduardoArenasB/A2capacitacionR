@@ -1,0 +1,50 @@
+nycflights13::flights
+
+
+iris
+iris = as_tibble(iris)
+iris
+
+#Readr
+
+read_csv('sexo,edad,ingreso
+         1,40,5000
+         2,25,2300
+         1,15,4600')
+
+enoe2 = read_csv("mu_enoe2.csv",col_names = c('sexo','edad','ingreso'))
+
+vector = c('1','2','3')
+vector = parse_integer(vector)
+
+x = '1.23'
+
+y = parse_double(x)
+class(y)
+
+
+prueba = read_csv(readr_example('challenge.csv'))
+problems(prueba)
+
+
+prueba = read_csv(readr_example('challenge.csv'),
+                  col_types = cols(
+                    x = col_double(),
+                    y = col_date()
+                  ))
+
+
+head(prueba)
+tail(prueba)
+
+prueba2 = read_csv(readr_example('challenge.csv'),
+                   col_types = cols(.default = col_character()))
+
+prueba2$y = parse_date(prueba2$y)
+
+
+prueba3 = read_csv(readr_example('challenge.csv'), guess_max = 1001)
+
+
+write_csv(prueba3, 'challenge4.csv')
+                   
