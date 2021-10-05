@@ -1,0 +1,78 @@
+#leyendo los dtas
+hogares = read_dta('hog_jal.dta')
+viviendas = read_dta('viv_jal.dta')
+personas = read_dta('per_jal.dta')
+trabajos = read_dta('trab_jal.dta')
+ingresos = read_dta('ing_jal.dta')
+
+viviendas%>%
+  count(folioviv)
+
+viviendas%>%
+  count(folioviv)%>%
+  filter(n>1)
+
+#contruir tablas
+
+x = tribble(
+  ~llave, ~sexo, ~edad,
+  1, 'H', '25',
+  2, 'M', '40',
+  3, 'H', '18'
+)
+
+
+y = tribble(
+  ~llave, ~sexo, ~edad,
+  1, '1750', '1100',
+  2, '2540', '1760',
+  4, '3000', '890'
+)
+
+view(x)
+
+z = inner_join(x,y, by= 'llave')
+
+left_join(x,y, by= 'llave')
+
+z = full_join(x,y,by='llave')
+
+
+ingresos = left_join(ingresos, personas, by = c("folioviv","foliohog", 'numren'))
+
+ingresos%>%
+  count(sexo,clave)%>%
+  arrange(desc(n),sexo)
+
+personas2 =  select(personas, folioviv:sexo)
+personas2 = left_join(personas2,viviendas, by = 'folioviv')
+
+
+personas2%>%
+  count(sexo,dotac_agua)
+
+
+personas_trabajan = semi_join(personas, trabajos, by = c("folioviv","foliohog","numren"))
+
+mean(personas_trabajan$edad)
+
+
+personas_no_trabajan = anti_join(personas,trabajos,by = c("folioviv","foliohog","numren"))
+
+
+ggplot(personas_no_trabajan)+
+  geom_bar(mapping = aes(edad))
+
+ggplot(personas_no_trabajan)+
+  geom_bar(mapping = aes(x = edad, fill = alfabetism))
+
+
+personas3 = select(personas, folioviv:numren)
+trabajos3 = select(trabajos, folioviv:numren)
+
+inter = intersect(personas3, trabajos3)
+
+
+
+union = union(personas3,trabajos3)
+set1 = setdiff(personas3, trabajos3)
