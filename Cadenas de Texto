@@ -1,0 +1,75 @@
+#Cadenas de Texto
+
+
+#library(stringr)
+#library(htmlwidgets)
+
+cadena1 = 'esto es una cadena de texto'
+
+cadena2 = "esto es una cadena de texto"
+
+cadena1==cadena2
+
+a = '\'Hola\''
+print(a)
+writeLines(a)
+
+b = 'hola \n saludos'
+writeLines(b)
+
+
+c= 'hola \t saludos'
+writeLines(c)
+
+
+d = c('Hola', 'Mundo', 'Saludos')
+writeLines(d)
+
+x = 'Hola'
+y = 'Mundo'
+
+str_c(x,y)
+str_c(x,' ',y)
+str_c(x,y, sep = ' ')
+str_c(x,y,cadena1,cadena2,sep = ",")
+
+z = c('Hola','Mundo','Soy yo')
+
+str_c(z , collapse = ' ')
+str_c(d , collapse = ' ')
+
+nombre = 'pikachu'
+hora = 'mañana'
+cumple = TRUE
+
+str_c('Buena ', hora, ' ', nombre)
+
+
+str_c('Buena ', hora, ' ', nombre, if(cumple) ' Y Feliz Cumpleaños')
+
+g = c('0014525', '0024685', '0028596')
+str_sub(g, 1, 3)
+
+x = c('arroz','arma','azucar','arte','turca','martes','marzo')
+
+str_view(x, 'ar')
+
+str_view(x,'a.')
+
+h = c("a3bc", "a.c", "a*c", "a c", "abc", "a5", "b*c")
+str_view(h, "a[.*]c")
+  
+todos = read_excel('def_ingresos.xlsx')
+ingresos = read_dta('ing_jal.dta')
+
+ing_in = todos%>%
+  mutate(clave = str_sub(CLAVE,1,4))%>%
+  filter(str_detect(todos$CLAVE, '^P0')== TRUE)
+
+ing_in = ing_in%>%
+  mutate(nombre = str_sub(CLAVE,6))%>%
+  select(-CLAVE)
+
+
+ingres_con_concepto = left_join(ingresos, ing_in, by='clave')
+
