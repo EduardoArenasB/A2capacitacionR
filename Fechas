@@ -1,0 +1,105 @@
+#Fechas
+
+today()
+now()
+
+fecha1 = '2021-01-05'
+fecha2 = 'January 05,2021' 
+fecha3 = '05-Jan-2021'
+
+fecha1 = ymd(fecha1)
+fecha2 = mdy(fecha2)
+fecha3 = dmy(fecha3)
+
+
+mibici = read_csv('mibici.csv')
+
+
+mibici2 = mibici%>%
+  mutate(inicio = make_datetime(year,month, day, hour_inicio, minute_inicio, second_inicio))
+
+mibici2 = mibici2%>%
+  mutate(final = make_datetime(year,month,day,hour_final,minute_final,second_final))
+
+mibici2 = mibici2%>%
+  mutate(duracion = final - inicio)
+
+promedio = summarise(group_by(mibici2, dia = make_datetime(year,month,day)), prom = mean(duracion),.groups = 'drop')
+
+
+ggplot(promedio, aes(dia, prom))+
+         geom_line(col='blue')
+
+ggplot(promedio, aes(dia, prom))+
+  geom_line(col='blue')
+
+
+mibici2%>%
+  ggplot(aes(inicio))+
+  geom_freqpoly(binwidth = 86400)
+
+mibici2%>%
+  filter(day == 5)%>%
+  ggplot(aes(inicio))+
+  geom_freqpoly(binwidth = 600)
+
+
+fecha_prueba = mibici2$inicio[1]
+year(fecha_prueba)
+month(fecha_prueba, label = TRUE, abbr = TRUE)
+wday(fecha_prueba)
+wday(fecha_prueba, label = TRUE, abbr = TRUE)
+
+mibici2 = mibici2%>%
+  mutate(diasem = wday(inicio, label = TRUE))
+
+mibici2%>%
+  ggplot(aes(x = diasem))+
+  geom_bar(fill='darkgreen',col = 'green')
+
+
+mibici2 = mibici2%>%
+  mutate(edad = 2020-nacimiento)
+
+mibici2%>%
+  ggplot(aes(edad))+
+  geom_bar(fill='purple',col='cyan')
+
+floor_date(fecha_prueba, 'week')
+
+mibici2%>%
+  count(dia=floor_date(inicio,'day'))%>%
+  ggplot(aes(dia,n))+
+  geom_line()
+
+fin = mibici2$final[1]
+
+inicio = mibici2$inicio[1]
+
+viaje = fin - inicio
+viaje
+
+as.duration(viaje)
+dminutes(78)
+dhours(2.5)
+ddays(5)
+dyears(33)
+
+today()+ddays(7)
+
+today()+dyears(1)
+
+minutes(ddays(1))
+
+
+mibici2=mibici2%>%
+  mutate(duracionpropia = seconds_to_period(duracion))
+
+Sys.timezone()
+
+
+Sys.setenv(tz = 'Europe/Amsterdam')
+now()
+
+OlsonNames()
+Sys.setenv(tz = 'America/Mexico_City')
