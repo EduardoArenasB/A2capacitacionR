@@ -1,0 +1,106 @@
+#Factores
+
+
+#Forcats
+
+lapop = read_csv('lapop_mexico.csv')
+
+
+summary(lapop)
+names(lapop)[9:10] <- c("region", "entidad")
+names(lapop)[16:18] <- c("sexo", "edad", "problema_mas_grave")
+names(lapop)[22] <- "voto"
+names(lapop)[25:27] <- c("confianza_politica", "elecciones", "ingreso")
+
+lapop = lapop%>%
+  mutate(sexo = as.factor(sexo))
+
+lapop <- lapop %>%
+  mutate(region=as.factor(region), sexo=as.factor(sexo),
+         entidad=as.factor(entidad), problema_mas_grave=as.factor(problema_mas_grave),
+         voto=as.factor(voto),confianza_politica=as.factor(confianza_politica),
+         elecciones=as.factor(elecciones),ingreso=as.factor(ingreso))
+
+
+lapop%>%
+  count(region)
+
+ggplot(lapop, aes(region))+
+  geom_bar()
+
+#modificar orden de factores
+
+voto = lapop%>%
+  group_by(voto)%>%
+  summarise(edad_promedio =mean(edad, no.rm=TRUE), n=n(), .groups = 'drop')
+
+
+ggplot(voto, aes(edad_promedio,voto))+
+  geom_point(size = 2, col= 'blue')
+
+ggplot(voto, aes(edad_promedio, fct_reorder(voto, edad_promedio)))+
+  geom_point(size = 2, col= 'blue')
+
+ggplot(voto, aes(n, fct_reorder(voto, n)))+
+  geom_point(size = 2, col= 'blue')
+
+
+ingreso = lapop%>%
+  group_by(ingreso)%>%
+  summarise(edad_promedio = mean(edad, na.rm = TRUE), n=n(),.groups = 'drop')
+
+view(ingreso)
+ggplot(ingreso, aes(edad_promedio, ingreso))+
+  geom_point(size = 2, col='purple')
+
+
+ggplot(ingreso, aes(edad_promedio, fct_reorder(ingreso, edad_promedio)))+
+  geom_point(size = 2, col='purple')
+
+
+ggplot(ingreso, aes(edad_promedio, fct_relevel(ingreso, 'Ningún ingreso','No sabe', 'No responde')))+
+  geom_point(size = 2, col='purple')
+
+
+lapop%>%
+  mutate(region = region%>%
+  fct_infreq()%>%
+    fct_rev())%>%
+  ggplot(aes(region))+
+  geom_bar(fill='pink')
+
+
+
+
+lapop2 <- lapop %>%
+  mutate(voto = fct_recode(voto,
+                           "AMLO" = "Andrés Manuel López Obrador Morena Juntos Haremos Historia",
+                           "Bronco" = "Jaime Rodríguez Calderón El Bronco Independiente",
+                           "Meade" = "José Antonio Meade Kuribreña PRI",
+                           "Anaya" = "Ricardo Anaya Cortés PAN",
+                           "NR, NS" = "No responde",
+                           "NR, NS" = "No sabe",
+                           "Anulado" = "Ninguno (anuló su voto)",
+                           "Anulado" = "Ninguno (fue a votar pero dejó la boleta en blanco)"))
+
+
+
+lapop2%>%
+  mutate(voto = voto%>% fct_infreq())%>%
+  ggplot(aes(voto))+
+  geom_bar(fill = 'lightgreen')
+
+
+lapop %>%
+  mutate(problema_mas_grave = problema_mas_grave %>% fct_infreq() %>% fct_rev()) %>%
+  ggplot(aes(problema_mas_grave)) +
+  geom_bar(fill="red") + coord_flip()
+
+lapop%>%
+  mutate(problema_mas_grave=fct_lump(problema_mas_grave, n = 10, other_level = 'Otras razones')%>%
+  fct_infreq()%>%
+  fct_rev())%>%
+  ggplot(aes(problema_mas_grave))+
+  geom_bar(fill='blue')+coord_flip()
+
+
