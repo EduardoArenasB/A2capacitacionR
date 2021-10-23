@@ -1,0 +1,76 @@
+#Funciones
+
+base = 4 
+altura = 3
+
+area = function(x,y){
+  x * y
+}
+
+x = 4 
+y = 5
+
+
+area(465,35456)
+
+
+signo = function(x){
+  if(x>0){print({'positivo'})}
+  else {('negativo')}
+}
+
+signo(-6)
+
+operacion = function(x,y,opera){
+  switch (opera, 
+          'suma' = x+y,
+          'resta'=x-y,
+          'multiplica'=x*y,
+          'divide'= x/y,
+          stop('Operacion desconocida'))
+}
+
+operacion(4,8,'teclado')
+
+
+punto2 = function(x,y){
+  if(length(x) != length(y)){
+    stop('x, y deben ser del mismo tamaño')
+  }else{
+    x*y
+  }
+}
+
+
+a = 3:7
+b = 3:7
+
+punto2(a,b)
+
+
+complejo = function(x,y){
+  if(length(x)==0||length(y)==0){
+    return(0)
+  }else{
+    x+y
+  }
+}
+
+
+complejo(NULL,9)
+
+
+#vECTORES
+
+letters
+
+typeof(letters)
+
+x = c(10,20,40,80,90,200,500,600,700,800,1000)
+
+
+y = (x>100 & x<1000)
+y
+x = c(1,5,6)
+
+
