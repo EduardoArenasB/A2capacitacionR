@@ -1,0 +1,307 @@
+#Modelos Lineales
+
+x1 = rnorm(500, mean = 10, sd = 10)
+x2 = rnorm(500 ,mean = 20, sd = 20)
+u = rnorm(500, mean = 0, sd = 1)
+
+y = 2+(5*x1)+(10*x2)+u
+datos = tibble(y = y, x1 = x1, x2 = x2)
+
+
+x3 = x1+x2
+datos = tibble(y = y, x1 = x1, x2 = x2, x3 = x3)
+
+grafica = datos%>%
+  ggplot(.,aes(x3,y))+
+  geom_point()
+
+grafica
+
+reg = lm(y~x1+x2,data = datos)
+
+summary(reg)
+
+
+#Variables categoricas
+
+genero = round(runif(500, min = 0, max = 1))
+y = 2+(5*x1)+(10*x2)+(5*genero)+u
+
+datos = tibble(y = y, x1 = x1, x2 = x2, sexo = genero)
+x3 = x1+x2+genero
+
+datos = tibble(y = y, x1 = x1, x2 = x2, sexo = genero, x3 = x3)
+
+grafica = datos%>%
+  ggplot(.,aes(x3,y))+
+  geom_point()
+
+grafica
+
+reg2 = lm(y~x1+x2+sexo, data = datos)
+summary(reg2)
+
+
+datos = datos%>%
+  mutate(sexo2 = as.character(sexo))%>%
+  mutate(sexo2  = fct_recode(sexo2, 'Hombre' = '0', 'Mujer' = '1'))
+
+reg2 = lm(y~x1+x2+sexo, data = datos)
+summary(reg)
+
+c = c('a','b','c','d')
+datos = tibble(datos, categoria = rep(c, 125))
+
+reg4 = lm(y~x1+x2+categoria, data = datos)
+summary(reg4)
+
+
+
+#Ajuste del modelo
+
+reg = lm(y~x1+x2+sexo, data = datos)
+predict = datos%>%
+  add_predictions(reg)%>%
+  add_residuals(reg)
+
+
+hist(predict$resid)
+mean(predict$resid)
+
+predict%>%
+  ggplot(aes(x = x1, y = resid))+
+  geom_point()+
+  geom_point()+
+  geom_smooth(color='red', se=FALSE)
+
+cov(predict$x1,predict$resid)
+
+
+predict%>%
+  ggplot(aes(x = x2, y = resid))+
+  geom_point()+
+  geom_point()+
+  geom_smooth(color='red', se=FALSE)
+
+cov(predict$x2,predict$resid)
+
+
+
+predict%>%
+  ggplot(aes(x = pred, y = resid))+
+  geom_point()+
+  geom_point()+
+  geom_smooth(color='red', se=FALSE)
+
+cov(predict$pred,predict$resid)
+
+#trabajando con enigh
+
+
+enigh = read_csv('hogares_enigh.csv')
+
+
+enigh <- enigh %>%
+  mutate(sexo_jefe=as.character(sexo_jefe)) %>%
+  mutate(clase_hog=as.character(clase_hog)) %>%
+  mutate(sexo_jefe = fct_recode(sexo_jefe, "Hombre" = "1", "Mujer" = "2")) %>%
+  mutate(clase_hog = fct_recode(clase_hog,
+                                "Unipersonal" = "1",
+                                "Nuclear" = "2",
+                                "Ampliado" = "3",
+                                "Compuesto" = "4",
+                                "Corresidente" = "5")) %>%
+  mutate(educa_jefe = fct_recode(educa_jefe,
+                                 "Sin instrucción" = "01",
+                                 "Preescolar" = "02",
+                                 "Primaria incompleta" = "03",
+                                 "Primaria completa" = "04",
+                                 "Secundaria incompleta" = "05",
+                                 "Secundaria completa" = "06",
+                                 "Preparatoria incompleta" = "07",
+                                 "Preparatoria completa" = "08",
+                                 "Profesional incompleta" = "09",
+                                 "Presional completa" = "10",
+                                 "Posgrado" = "11"))
+
+
+enigh%>%
+  ggplot(aes(x=ing_cor, y= alimentos))+
+  geom_point()
+
+enigh = enigh%>%
+  mutate(ing_cor=ifelse(ing_cor==0, NA, ing_cor))%>%
+  mutate(alimentos = ifelse(alimentos==0, NA, alimentos))%>%
+  filter(ing_cor!='NA')%>%
+  filter(alimentos!='NA')
+
+
+enigh = enigh%>%
+  mutate(ln_alimentos = log(alimentos))%>%
+  mutate(ln_ingreso = log(ing_cor))
+
+enigh%>%
+  ggplot(aes(x=ln_ingreso, y=ln_alimentos))+
+  geom_point()
+
+#Scatterplots
+
+
+ggplot(enigh, aes(ln_ingreso, ln_alimentos))+
+  geom_hex(bins=100)
+
+
+enigh%>%
+  ggplot(aes(x=ln_ingreso,y=ln_alimentos))+
+  geom_point()+
+  geom_point(aes(color=clase_hog))
+
+
+enigh%>%
+  ggplot(aes(x=ln_ingreso,y=ln_alimentos))+
+  geom_point()+
+  geom_point(aes(color=educa_jefe))
+
+
+enigh%>%
+  ggplot(aes(x=ln_ingreso,y=ln_alimentos))+
+  geom_point()+
+  geom_point(aes(color=sexo_jefe))
+
+
+
+sumg = enigh%>%
+  group_by(clase_hog)%>%
+  summarise(ln_alimentos = mean(ln_alimentos))
+view(sumg)
+
+
+ggplot(enigh, aes(clase_hog, ln_alimentos, color=clase_hog))+
+  geom_boxplot()+
+  geom_point(data=sumg, color= 'black', size=4)
+
+
+sumg = enigh%>%
+  group_by(educa_jefe)%>%
+  summarise(ln_alimentos = mean(ln_alimentos))
+
+
+ggplot(enigh, aes(educa_jefe, ln_alimentos, color=educa_jefe))+
+  geom_boxplot()+
+  geom_point(data=sumg, color= 'black', size=4)+
+  coord_flip()
+
+modelo = lm(ln_alimentos ~ ln_ingreso + tot_integ + edad_jefe + clase_hog + educa_jefe,data = enigh)
+
+summary(modelo, digit = 5)
+
+
+predict = enigh%>%
+  add_predictions(modelo)%>%
+  add_residuals(modelo)
+
+view(predict)
+
+mean(predict$resid)
+hist(predict$resid)
+
+
+predict%>%
+  ggplot(aes(x = pred, y = resid^2))+
+  geom_point()+
+  geom_smooth(color='red',se = FALSE)
+
+#visitantes a mexico
+entradas = read_csv('visitantes.csv')
+entradas = filter(entradas,anio<2020)
+entradas = group_by(entradas,anio,mes)
+entradas = summarise(entradas, visitantes = sum(visitantes), groups = 'drop')
+
+
+entradas <- entradas %>%
+  mutate(mes_num =mes)
+entradas$mes_num <- gsub("Enero", 1, entradas$mes_num)
+entradas$mes_num <- gsub("Febrero", 2, entradas$mes_num)
+entradas$mes_num <- gsub("Marzo", 3, entradas$mes_num)
+entradas$mes_num <- gsub("Abril", 4, entradas$mes_num)
+entradas$mes_num <- gsub("Mayo", 5, entradas$mes_num)
+entradas$mes_num <- gsub("Junio", 6, entradas$mes_num)
+entradas$mes_num <- gsub("Julio", 7, entradas$mes_num)
+entradas$mes_num <- gsub("Agosto", 8, entradas$mes_num)
+entradas$mes_num <- gsub("Septiembre", 9, entradas$mes_num)
+entradas$mes_num <- gsub("Octubre", 10, entradas$mes_num)
+entradas$mes_num <- gsub("Noviembre", 11, entradas$mes_num)
+entradas$mes_num <- gsub("Diciembre", 12, entradas$mes_num)
+entradas <- entradas %>%
+  mutate(mes_num=as.numeric(mes_num))
+
+
+
+library(lubridate)
+
+entradas = mutate(entradas, fecha = make_date(anio,mes_num,1))
+
+
+ggplot(entradas, aes(fecha,visitantes))+
+  geom_line()
+
+
+entradas = entradas%>%
+  mutate(anio2=as.factor(anio))%>%
+  mutate(mes_corto = month(fecha, label = TRUE))%>%
+  mutate(ln_visitantes = log(visitantes))
+
+ggplot(entradas, aes(mes_corto, ln_visitantes))+
+  geom_boxplot()
+
+modelo = lm(ln_visitantes ~ mes, data = entradas)
+summary(modelo)
+
+
+
+predict = entradas%>%
+  add_predictions(modelo)%>%
+  add_residuals(modelo)
+
+view(predict)
+
+hist(predict$resid)
+mean(predict$resid)
+
+predict%>%
+  ggplot(aes(x=pred, y=resid^2))+
+  geom_point()+
+  geom_point()+
+  geom_smooth(color = 'red', se=FALSE)
+
+predict%>%
+  ggplot(aes(fecha,resid))+
+  geom_ref_line(h = 0)+
+  geom_line(color = 'grey50')+
+  geom_smooth(se = FALSE, span = .20)
+
+
+entradas <- entradas %>%
+  mutate(estaciones = fct_recode(mes_corto)) %>%
+  mutate(estaciones = fct_collapse(estaciones,
+                                   "primavera" = c("Mar","Apr","May"),
+                                   "verano" = c("Jun","Jul","Aug"),
+                                   "otoño" = c("Sep","Oct","Nov"),
+                                   "invierno" = c("Dec","Jan","Feb")))
+
+
+entradas%>%
+  ggplot(aes(mes_corto, ln_visitantes, color = estaciones))+
+  geom_boxplot()+
+  scale_color_brewer(palette = 'Set1')
+
+modelo2 = lm(ln_visitantes ~ mes + anio2, data = entradas)
+summary(modelo2)
+
+predict = entradas%>%
+  add_predictions(modelo2)%>%
+  add_residuals(modelo2)
+
+view(predict)
+hist(predict$resid)
+
