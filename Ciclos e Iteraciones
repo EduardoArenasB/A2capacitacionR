@@ -1,0 +1,180 @@
+#Ciclos
+
+print(paste('el año es', 2010))
+
+for (year in 1900:1999){
+  print(paste('the year is ',year))
+}
+
+for (i in 1:10){
+    if(!i %% 2){
+      next
+    }
+    print(i)
+}
+
+
+
+datos = read_excel('mu_enoe.xlsx')
+
+datos = datos%>%
+  select(edad,anios_esc, hrsocup, ingreso_mensual)
+
+resultados = vector('double',4)
+
+for(i in 1:4){
+  resultados[[i]]=mean((datos[[i]]))
+}
+
+dp2 <- tibble(
+  a = rnorm(5),
+  b = rnorm(5),
+  c = rnorm(5),
+  d = rnorm(5),
+  e=a*b,
+  f=c*d,
+  g=c*f
+)
+
+
+
+medias = vector('double',nrow(dp2))
+for(i in 1:nrow(dp2)){
+  medias[[i]]=mean(as.numeric(dp2[i,]))
+}
+
+
+medias
+
+opera_fila = function(x,func){
+  res = vector('double',nrow(x))
+  for(i in 1:nrow(x)){
+    res[[i]]=func(as.numeric(x[i,]))
+  }
+  return(res)
+}
+
+
+
+opera_fila(dp2, mean)
+
+opera_fila(dp2, var)
+
+
+
+
+dp <- tibble(
+  a = rnorm(100),
+  b = rnorm(100),
+  c = rnorm(100),
+)
+
+map_dbl(dp2,mean)
+
+map_dbl(dp2, median)
+
+funciones = list(mean, median, var)
+
+invoke_map(funciones, x=as.numeric(dp2[[7]]))
+
+x = list(a = 1:10, b = 5:40, c = 6:23)
+y = list(a = 5:10, b = 20:40, c = 7:12)
+
+map(x, mean)
+
+map(y, var)
+
+
+invoke_map(funciones, x=x[[1]])
+
+z = list(x = 1:3, y = 4:5)
+z
+
+map_int(z,length)
+
+
+datos = read_excel('mu_enoe.xlsx')
+
+datos%>%
+  group_by(niv_edu)%>%
+  count()
+  
+
+modelos = datos%>%
+  split(.$niv_edu)%>%
+  map(~lm(ingreso_mensual~anios_esc, data=.))
+
+modelos%>%
+  map(summary)%>%
+  map_dbl(~.$r.squared)
+
+
+modelos%>%
+  map(summary)%>%
+  map_dbl(~.$coefficients[2,1])
+
+
+num = list(50,30,70,90,'w')
+raiz = map(num, sqrt)
+
+raiz = map(num, safely(sqrt))
+
+raiz=map(num, possibly(sqrt, NA))
+str(raiz)
+
+mu = list(5,10,-3)
+mu%>%
+  map(rnorm, n=5)%>%
+  str()
+
+
+sigma = list(1,5,10)
+
+map2(mu, sigma, rnorm, n = 5)%>%
+  str()
+
+n = list(1,3,5)
+args = list(n,mu,sigma)
+
+args%>%
+  pmap(rnorm)%>%
+  str()
+
+funciones = c('mean','median','sum','median')
+datos_prueba = select(datos, edad, anios_esc, hrsocup, ingreso_mensual)
+
+invoke_map_dbl(funciones,datos_prueba)
+
+funciones= c('mean','median','IQR','sd','var')
+estadisticas =map_dfr(datos_prueba, ~invoke_map_dbl(funciones, x=.))
+
+
+graficas = datos%>%
+  split(.$niv_edu)%>%
+  map(~ggplot(.,aes(ingreso_mensual,anios_esc))+
+        geom_point())
+
+graficas$`Primaria incompleta`
+
+datos%>%
+  keep(is.character)%>%
+  str()
+
+datos_numericos = datos%>%
+  discard(is.character)
+datos_numericos
+
+
+datos$sex%>%
+  every(is.character)
+
+combinado = list(datos$sex, datos$edad)
+
+combinado%>%
+  some(is.numeric)
+
+
+edades = sample(combinado[[2]],10)
+
+edades%>%
+  detect(~.>40)
