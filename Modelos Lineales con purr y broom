@@ -1,0 +1,121 @@
+#Modelos lineales con Purr
+
+data = read_csv('indicadores_banco_mundial.csv')
+
+names(data)[2] = 'pais'
+names(data)[5] = 'esperanza'
+names(data)[6] = 'pib_pc'
+
+data%>%
+  ggplot(aes(tiempo, esperanza, group = pais))+
+  geom_line(alpha = 1/3)
+unique(data$`país Name`)
+
+mx = data%>%
+  filter(pais=='MEX')
+
+g1 = mx%>%
+  ggplot(aes(tiempo, esperanza))+
+  geom_line()+
+  ggtitle('Datos')
+
+g1
+mx_mod = lm(esperanza ~ tiempo, data = mx)
+
+g2 = mx%>%
+  add_predictions(mx_mod)%>%
+  ggplot(aes(tiempo, pred))+
+  geom_line()+
+ggtitle('Tendencia Lineal')
+
+g2
+
+g3 = mx%>%
+  add_residuals(mx_mod)%>%
+  ggplot(aes(tiempo, resid))+
+  geom_hline(yintercept = 0,color='white', size = 3)+
+  geom_line()+
+  ggtitle('Patron Residual')
+
+g2
+
+grid.arrange(g1,g2,g3, ncol = 3)
+
+
+#anidado de tablas
+
+grupo_paises = data%>%
+  group_by(pais)%>%
+  nest()
+
+modelo_pais = function(df){
+  lm(esperanza ~ pib_pc, data = df)
+}
+
+
+modelos = map(grupo_paises$data, modelo_pais)
+summary(modelos[[1]])
+
+grupo_paises = grupo_paises%>%
+  mutate(modelo = map(data, modelo_pais))
+
+grupo_paises = grupo_paises%>%
+  mutate(resids = map2(data,modelo, add_residuals))
+
+grupo_paises = grupo_paises%>%
+  mutate(predict=map2(data, modelo, add_predictions))
+
+residuos = unnest(grupo_paises, resids)
+
+r24 = residuos%>%
+  ggplot(aes(tiempo, resid))+
+  geom_line(aes(group = pais), alpha = 1/3)+
+  geom_smooth(se=FALSE)
+r24
+
+r25 = residuos%>%
+  ggplot(aes(tiempo, resid))+
+  geom_line()+
+  facet_wrap(~pais)
+r25
+
+filter(residuos, pais=='NIC'||pais =='HND'||pais=='HTI')%>%
+  ggplot(aes(tiempo,resid))+
+  geom_line()+
+  facet_wrap(~pais)
+
+#Calidad del modelo
+
+glance(mx_mod)
+
+grupo_paises = grupo_paises%>%
+  mutate(ajustes = map(modelo, glance))%>%
+  unnest(ajustes)
+grupo_paises
+
+
+grupo_paises%>%
+  ggplot()+
+  geom_bar(aes(pais, r.squared), stat='identity', fill='dark blue')
+
+grupo_paises%>%
+  arrange(r.squared)
+
+
+bajo_ajuste = filter(grupo_paises, r.squared <0.9)
+
+ba=data%>%
+  semi_join(bajo_ajuste,  by='pais')%>%
+  ggplot(aes(tiempo,esperanza, color = `país Name`))+
+  geom_line()
+ba  
+
+
+alto_ajuste = filter(grupo_paises, r.squared >0.9)
+
+aa=data%>%
+  semi_join(alto_ajuste,  by='pais')%>%
+  ggplot(aes(tiempo,esperanza, color = `país Name`))+
+  geom_line()
+
+aa
