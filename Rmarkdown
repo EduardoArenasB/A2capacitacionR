@@ -1,0 +1,252 @@
+---
+title: "Mi Primer Dashboard"
+author: "Yo"
+date: "1/27/2021"
+output:
+  flexdashboard::flex_dashboard:
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+# Ingresos y años de escolaridad
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(DT)
+library(shiny)
+```
+
+```{r}
+setwd("C:/Users/darth/Desktop/Machine Learning/R A2 Capacitacion/16- RMarkdown")
+enoe<-read_xlsx("mu_enoe.xlsx")
+```
+
+## Columna 1
+
+```{r}
+selectInput("Estado", label = "Selecciona el estado:",
+choices = unique(enoe$estado), selected = "Jalisco")
+```
+
+```{r}
+enoe2<-reactive(filter(enoe, estado==input$Estado))
+```
+
+### Ingreso vs Años escolaridad
+
+```{r}
+renderPlot({
+  ggplot(data = enoe) +
+  geom_point(mapping = aes(x=anios_esc, y=ingreso_mensual))
+})
+
+```
+
+### Diferencias en el salario promedio
+
+
+```{r}
+renderPlot({
+ggplot(enoe2())+
+geom_bar(mapping = aes(x=sex, fill=sex))
+})
+```
+
+## Columna 2
+
+```{r}
+enoe %>%
+arrange(desc(ingreso_mensual)) %>%
+select(estado, sex, edad, niv_edu, ingreso_mensual) %>%
+DT::datatable()
+```
+
+# Nivel Educativo
+
+## Columna 1
+
+### Informacion por sexo
+
+```{r}
+ggplot(data=enoe)+
+geom_bar(mapping = aes(x=sex, fill=niv_edu))
+```
+
+### Ubicación
+
+```{r}
+library(leaflet)
+leaflet() %>%
+setView(-103.38742861607173, 20.67460296566588, zoom = 16) %>%
+addTiles() %>%
+addMarkers(-103.38742861607173, 20.67460296566588, popup = "Minerva")
+```
+
+## Columna 2
+
+### Observaciones
+
+```{r}
+ggplot(data=enoe, mapping = aes(x=sex, fill=niv_edu))+
+geom_bar( position = "dodge")+
+labs(title="Observaciones por sexo y nivel educativo", x="Sexo", y="Observaciones")
+```
+
+### Diagrama caja
+
+```{r}
+ggplot(data=enoe, mapping = aes(x=niv_edu, y=ingreso_mensual))+
+geom_boxplot()+
+coord_flip()
+```
+####################################################################################################################
+
+---
+title: "Viajes en mi bici"
+author: "El nithilus"
+date: "10/26/2021"
+output: 
+  html_document:
+    toc: yes
+    number_sections: yes
+params:
+  sexo: "F"
+  dia: 31
+---
+# Introduccion
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+setwd("C:/Users/darth/Desktop/Machine Learning/R A2 Capacitacion/16- RMarkdown")
+mibici<-read_csv("mibici.csv")
+mostrar <- mibici %>%
+filter(genero==params$sexo, day==params$dia)
+```
+
+
+```{r, exercise = TRUE}
+mibici2<-mostrar %>%
+mutate(inicio=make_datetime(year, month, day, hour_inicio, minute_inicio, second_inicio))%>%
+mutate(final=make_datetime(year, month, day, hour_final, minute_final,second_final))%>%
+mutate(dura=final-inicio)
+mibici2[1:5,16:18]
+```
+## Texto
+
+Viajes efectuados por personas de sexo **`r params$sexo`** en el día **`r params$dia`** 
+del mes de diciembre del año 2020. La duración promedio de los viajes en este día fue de 
+**`r as.numeric(mean(mibici2$dura))`** segundos.
+
+### Grafica
+
+La gráfica que muestra los viajes promedio por hora que hicieron las personas de
+sexo **`r params$sexo`** en el día **`r params$dia`**, de diciembre son:
+
+```{r, message=FALSE, echo=FALSE}
+promedio<-summarise(group_by(mibici2, hora=make_datetime(year, month, day,
+hour_inicio)),
+prom=mean(dura), .groups = 'drop')
+ggplot(promedio, aes(hora, prom))+
+geom_line(col="blue")
+```
+
+# Inicio segunda parte
+
+#################################################################################################################
+
+---
+title: "Mi primer Rmarkdown"
+author: "El nithilus"
+date: "10/26/2021"
+output: html_document
+---
+
+Negritas
+
+**Hola Mundo**
+
+*Cursivas*
+
+Gravedad^2^
+
+# Encabezado mas perron
+
+## segundo encabezado
+
+### tercer encabezado
+
+* Elemento 1
+* Elemento 2
+  * Elemento 2a
+  
+![](NapoleonTuleries.jpg){height=120px}
+
+
+[GoogleMaps](https://www.google.com/maps)
+
+
+```{r untibble, eval=TRUE}
+df = tibble::tibble(
+a = rlnorm(5),
+b = rlnorm(5),
+c = rlnorm(5),
+d = rlnorm(5)
+)
+df
+
+
+```
+
+```{r, echo=FALSE}
+knitr::kable(
+  babynames::lifetables[1:15,],
+  caption = 'Una Tabla'
+)
+```
+
+```{r}
+coma = function(x) format(x, digits = 2, big.mark = ',')
+
+```
+-La muestra total contiene `r dim(babynames::births)` filas y columnas
+
+-De `r babynames::births[1,1]` a `r babynames::births[nrow(babynames::births),1]` se registraron
+`r coma(sum(babynames::births$births))` nacimientos en EUA
+
+
+
+```{r primercodigo}
+a = 50
+b = 80
+a*b/2
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
