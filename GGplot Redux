@@ -1,0 +1,181 @@
+##GGplot redux
+
+#Etiquetas
+
+g1 = ggplot(data=enoe)+
+  geom_smooth(mapping = aes(x =anios_esc, y =ingreso_mensual, linetype=tipo_empleo))+
+  geom_point(mapping = aes(x =anios_esc, y =ingreso_mensual, color=tipo_empleo))
+g1
+
+
+g1+
+  labs(title = 'Relacion entre los años',
+       subtitle = 'segun tipo de empleo',
+       caption = 'dato del INEGI',
+       x = 'años de escolaridad',
+       y = 'ingreso mensual $',
+       color = 'Tipo de empleo',
+       linetype = 'tipo de empleo',
+       tag = 'Grafica 1'
+       )
+
+etiquetax = quote(sum(años))
+etiquetay = paste('ingreso mensual maximo registrado: $', max(enoe$ingreso_mensual), sep = '\n')
+
+g1+
+  labs(title = 'Relacion entre los años',
+       subtitle = 'segun tipo de empleo',
+       caption = 'dato del INEGI',
+       x = etiquetax,
+       y = etiquetay,
+       color = 'Tipo de empleo',
+       linetype = 'tipo de empleo',
+       tag = 'Grafica 1'
+  )
+
+
+# Anotaciones
+
+tipo = enoe%>%
+  group_by(tipo_empleo, niv_edu, anios_esc)%>%
+  summarise(max_na = max(ingreso_mensual))%>%
+  group_by(tipo_empleo,niv_edu)%>%
+  filter(max_na == max(max_na))
+
+names(tipo)[4]= 'ingreso_mensual'
+tipo
+
+g2 = ggplot(enoe, aes(anios_esc, ingreso_mensual))+
+  geom_point(aes(color=niv_edu))
+g2
+
+g3 = g2+
+  geom_text(aes(label = tipo_empleo), data = tipo)
+g3
+
+
+g4 = g2+
+  geom_label(aes(label = tipo_empleo), data = tipo, alpha = .5, size = 2)
+g4
+
+
+g2+
+    geom_point(data = tipo, alpha = 0.5, size = 3)+
+    ggrepel::geom_label_repel(aes(label=tipo_empleo), data = tipo)
+
+ggplot(enoe, aes(anios_esc, ingreso_mensual, color = niv_edu))+
+  ggrepel::geom_label_repel(aes(label=niv_edu), data = tipo, size = 3, segment.color =NA)+
+  geom_point()
+  
+
+mayor_ing = enoe%>%
+  filter(ingreso_mensual == max(ingreso_mensual))%>%
+  select(estado, niv_edu, ingreso_mensual, tipo_empleo, anios_esc)%>%
+  mutate(texto = 'Mayor Ingreso')
+mayor_ing
+
+g5 = g2 +
+  geom_text(aes(label = texto), data = mayor_ing, size = 3, color = 'black', hjust = 'center', vjust = 'bottom')+
+  geom_point(aes(anios_esc, ingreso_mensual), data = mayor_ing, color= 'blue', size = 3)
+g5
+
+
+g5+
+  geom_hline(yintercept = mean(enoe$ingreso_mensual), color = 'magenta')+
+  geom_vline(xintercept = mean(enoe$anios_esc), color = 'magenta')
+
+
+#Escalas
+
+
+
+g5 = g5+
+  geom_hline(yintercept = mean(enoe$ingreso_mensual), color = 'magenta')+
+  geom_vline(xintercept = mean(enoe$anios_esc), color = 'magenta')
+
+g5 = g5+
+  labs(title = 'Relacion entre los años',
+       subtitle = 'segun tipo de empleo',
+       caption = 'dato del INEGI',
+       x = etiquetax,
+       y = etiquetay,
+       color = 'Tipo de empleo',
+       linetype = 'tipo de empleo',
+       tag = 'Grafica 1'
+  )
+g5  
+
+
+g5 = g5 +
+  scale_y_continuous(breaks = seq(10000,80000, by = 10000))+
+  scale_x_continuous(breaks = seq(0,26, by = 2))
+g5
+
+#quitar escalas
+g5+
+  scale_y_continuous(labels = NULL)+
+  scale_x_continuous(labels = NULL)
+
+et_anios = paste(seq(0,26, by = 2), 'A')
+
+g5+
+  scale_y_continuous(breaks = seq(10000,80000,by = 10000), labels = )+
+  scale_x_continuous(breaks = seq(0,26,by = 2), labels = et_anios)
+
+#Leyendas
+
+g5+
+  theme(legend.position = 'left')
+
+
+g5+
+  theme(legend.position = 'bottom')+
+  guides(color = guide_legend(nrow = 2, override.aes = list(size=3)))
+
+
+#Colores
+
+g5+
+  scale_color_brewer(palette = 'BrBG')
+
+
+g6 = ggplot(enoe)+
+  geom_point(aes(x=anios_esc, y= ingreso_mensual, color = hrsocup))
+g6
+
+
+g6+
+  scale_colour_gradient(low = 'white', high = 'black')
+
+
+ggplot(enoe, aes(x=anios_esc, ingreso_mensual))+
+  geom_bar(aes(fill = ingreso_mensual), stat = 'identity')+
+  scale_fill_gradient(low = 'yellow', high = 'red', na.value = NA)
+
+#TEMAS TEXTOS Y COLORES
+
+g9 = g5+theme_dark()+theme(legend.position = 'NULL')
+g9
+
+g10 = g5+theme_classic()+theme(legend.position = 'NULL')
+g10
+
+titulo_grafica = element_text(family = 'Consolas', face = 'bold', color = 'blue', size = 12)
+
+subtitulo_grafica = element_text(family = 'Consolas', color = 'red', size = 10)
+
+g5+theme(plot.title = titulo_grafica, plot.subtitle = subtitulo_grafica)
+
+
+texto_ejes<- element_text(family = "Comic Sans MS", face = "bold", color="brown", size=8)
+texto_ley <- element_text(family = "Comic Sans MS", face = "bold", color="purple", size=10)
+
+g5+theme_classic()+
+  theme(plot.title = titulo_grafica,
+                         plot.subtitle =subtitulo_grafica,
+                         axis.title.x = texto_ejes,
+                         axis.title.y = texto_ejes,
+                         legend.text=texto_ejes,
+                         legend.title= texto_ley)
+
+
